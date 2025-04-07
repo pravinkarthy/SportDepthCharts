@@ -45,7 +45,9 @@ Adds a player to the system with a unique ID and name.
   ```
   Sent to nfl_depth_chart_queue: {"type":"add_player","playerId":1,"name":"Bob"}
   ```
-- **Effect**: Registers player "Bob" with ID 1. No console output by default.
+- **Effect**: Registers player "Bob" with ID 1.
+
+`Note:` Players "Bob", "Alice" and "Charlie" are already available in the application.  Not required to be added again.
 
 ### 2. `"add"`
 
@@ -96,7 +98,7 @@ Removes a player from a specific position in the depth chart.
   ```
   Sent to nfl_depth_chart_queue: {"type":"remove","name":"Bob","position":"WR"}
   ```
-- **Effect**: Removes "Bob" from the WR position. No console output by default.
+- **Effect**: Removes "Bob" from the WR position. 
 
 ### 4. `"get_full"`
 
@@ -152,3 +154,47 @@ Lists players below a specified player in a position.
 - **Error Handling**: Invalid JSON or missing `"type"` results in an error message to the console (e.g., `"Error processing message: ..."`).
 - **Depth Chart Logic**: Players are ordered by `"depth"`; lower values are higher in the chart.
 - **Testing**: Unit tests in `DepthChartTests` verify all message types using real MediatR and service implementations.
+
+## Sample Output
+
+```
+Connected to RabbitMQ. Enter JSON messages to send to nfl_depth_chart_queue (or type 'exit' to quit):
+
+Available message types (use camelCase JSON):
+1. Add Player: Registers a new player.
+   Example: {"type":"add_player","playerId":1,"name":"Bob"}
+2. Add to Depth Chart: Adds/updates a player's position with depth.
+   Example: {"type":"add","name":"Bob","position":"WR","depth":0}
+   Optional depth: {"type":"add","playerId":1,"name":"Bob","position":"KR"}
+3. Remove from Depth Chart: Removes a player from a position.
+   Example: {"type":"remove","name":"Bob","position":"WR"}
+4. Get Full Depth Chart: Displays the entire chart.
+   Example: {"type":"get_full"}
+5. Get Players Under: Lists players below a specific player.
+   Example: {"type":"get_under","name":"Alice","position":"WR"}
+Use NFL positions: QB, WR, RB, TE, K, P, KR, PR
+
+> {"type":"add","name":"Bob","position":"WR","depth":0}
+Sent to nfl_depth_chart_queue: {"type":"add","name":"Bob","position":"WR","depth":0}
+> Added Player Bob with position 'WR' to depth: 0
+{"type":"add","name":"Alice","position":"WR","depth":0}
+Sent to nfl_depth_chart_queue: {"type":"add","name":"Alice","position":"WR","depth":0}
+> Added Player Alice with position 'WR' to depth: 0
+{"type":"add","name":"charlie","position":"WR","depth":2}
+Sent to nfl_depth_chart_queue: {"type":"add","name":"charlie","position":"WR","depth":2}
+> Added Player charlie with position 'WR' to depth: 2
+{"type":"add","name":"bob","position":"KR"}
+Sent to nfl_depth_chart_queue: {"type":"add","name":"bob","position":"KR"}
+> Added Player bob with position 'KR' to depth:
+{"type":"get_full"}
+Sent to nfl_depth_chart_queue: {"type":"get_full"}
+>
+Depth Chart:
+WR: [2, 1, 3]
+KR: [1]
+{"type":"get_under","name":"Alice","position":"WR"}
+Sent to nfl_depth_chart_queue: {"type":"get_under","name":"Alice","position":"WR"}
+>
+Players Under Alice with position 'WR':
+[1,3]
+  ```

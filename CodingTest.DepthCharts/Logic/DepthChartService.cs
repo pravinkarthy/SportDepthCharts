@@ -48,7 +48,8 @@ public class DepthChartService<TPosition> where TPosition : struct, Enum
         // Remove any existing entry for this player in this position to avoid duplicates
         chart.RemoveAll(p => p.PlayerId == playerPosition.PlayerId);
 
-        if (playerPosition.PositionDepth.HasValue && playerPosition.PositionDepth.Value >= 0 && playerPosition.PositionDepth.Value <= chart.Count)
+        if (playerPosition.PositionDepth.HasValue && playerPosition.PositionDepth.Value >= 0 
+            && playerPosition.PositionDepth.Value <= chart.Count)
         {
             chart.Insert(playerPosition.PositionDepth.Value, playerPosition);
         }

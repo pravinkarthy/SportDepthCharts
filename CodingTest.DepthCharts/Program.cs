@@ -60,6 +60,31 @@ class Program
 
         await Task.WhenAll(listenerTasks);
     }
+
+    private static void RegisterSportServices<TPosition>(IServiceCollection services, object config, IConfiguration configuration)
+        where TPosition : struct, Enum
+    {
+        if (config is SportConfiguration<TPosition> typedConfig)
+        {
+            services.AddSingleton<DepthChartService<TPosition>>();
+
+            // Register the handler class once for all its implemented interfaces
+            services.AddTransient<DepthChartCommandHandlers<TPosition>>();
+            services.AddTransient<IRequestHandler<AddPlayerToDepthChartCommand<TPosition>>, DepthChartCommandHandlers<TPosition>>();
+            services.AddTransient<IRequestHandler<RemovePlayerFromDepthChartCommand<TPosition>>, DepthChartCommandHandlers<TPosition>>();
+            services.AddTransient<IRequestHandler<GetFullDepthChartQuery<TPosition>, Dictionary<TPosition, List<PlayerPosition>>>, DepthChartCommandHandlers<TPosition>>();
+            services.AddTransient<IRequestHandler<GetPlayersUnderQuery<TPosition>, List<PlayerPosition>>, DepthChartCommandHandlers<TPosition>>();
+
+            services.AddSingleton(provider => new RabbitMqReceiver<TPosition>(
+                provider.GetService<IMediator>(),
+                provider.GetService<DepthChartService<TPosition>>(),
+                configuration)
+            {
+                QueueName = typedConfig.QueueName
+            });
+        }
+    }
+
     private static async Task RunInteractiveLoop(IConfiguration configuration, string queueName)
     {
         var factory = new ConnectionFactory
@@ -81,6 +106,7 @@ class Program
             arguments: null);
 
         Console.WriteLine($"Connected to RabbitMQ. Enter JSON messages to send to {queueName} (or type 'exit' to quit):");
+        DisplayOptions();
 
         while (true)
         {
@@ -115,27 +141,20 @@ class Program
         Console.WriteLine("Exiting interactive mode...");
     }
 
-    private static void RegisterSportServices<TPosition>(IServiceCollection services, object config, IConfiguration configuration)
-        where TPosition : struct, Enum
+    private static void DisplayOptions()
     {
-        if (config is SportConfiguration<TPosition> typedConfig)
-        {
-            services.AddSingleton<DepthChartService<TPosition>>();
-
-            // Register the handler class once for all its implemented interfaces
-            services.AddTransient<DepthChartCommandHandlers<TPosition>>();
-            services.AddTransient<IRequestHandler<AddPlayerToDepthChartCommand<TPosition>>, DepthChartCommandHandlers<TPosition>>();
-            services.AddTransient<IRequestHandler<RemovePlayerFromDepthChartCommand<TPosition>>, DepthChartCommandHandlers<TPosition>>();
-            services.AddTransient<IRequestHandler<GetFullDepthChartQuery<TPosition>, Dictionary<TPosition, List<PlayerPosition>>>, DepthChartCommandHandlers<TPosition>>();
-            services.AddTransient<IRequestHandler<GetPlayersUnderQuery<TPosition>, List<PlayerPosition>>, DepthChartCommandHandlers<TPosition>>();
-
-            services.AddSingleton(provider => new RabbitMqReceiver<TPosition>(
-                provider.GetService<IMediator>(),
-                provider.GetService<DepthChartService<TPosition>>(),
-                configuration)
-            {
-                QueueName = typedConfig.QueueName // Pass queue name dynamically
-            });
-        }
+        Console.WriteLine("\nAvailable message types (use camelCase JSON):");
+        Console.WriteLine("1. Add Player: Registers a new player.");
+        Console.WriteLine("   Example: {\"type\":\"add_player\",\"playerId\":1,\"name\":\"Bob\"}");
+        Console.WriteLine("2. Add to Depth Chart: Adds/updates a player's position with depth.");
+        Console.WriteLine("   Example: {\"type\":\"add\",\"name\":\"Bob\",\"position\":\"WR\",\"depth\":0}");
+        Console.WriteLine("   Optional depth: {\"type\":\"add\",\"playerId\":1,\"name\":\"Bob\",\"position\":\"KR\"}");
+        Console.WriteLine("3. Remove from Depth Chart: Removes a player from a position.");
+        Console.WriteLine("   Example: {\"type\":\"remove\",\"name\":\"Bob\",\"position\":\"WR\"}");
+        Console.WriteLine("4. Get Full Depth Chart: Displays the entire chart.");
+        Console.WriteLine("   Example: {\"type\":\"get_full\"}");
+        Console.WriteLine("5. Get Players Under: Lists players below a specific player.");
+        Console.WriteLine("   Example: {\"type\":\"get_under\",\"name\":\"Alice\",\"position\":\"WR\"}");
+        Console.WriteLine("Use NFL positions: QB, WR, RB, TE, K, P, KR, PR\n");
     }
 }

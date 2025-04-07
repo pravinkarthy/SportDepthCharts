@@ -63,7 +63,6 @@ public class RabbitMqReceiver<TPosition> where TPosition : struct, Enum
             autoAck: true,
             consumer: consumer);
 
-        Console.WriteLine($"Listening for messages for {typeof(TPosition).Name} on queue {QueueName}...");
         await Task.Delay(Timeout.Infinite);
     }
 

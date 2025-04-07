@@ -53,28 +53,28 @@ Adds or updates a player’s position in the depth chart.
 
 - **Sample Inputs**:
   ```json
-  {"type":"add","playerId":1,"name":"Bob","position":"WR","depth":0}
+  {"type":"add","name":"Bob","position":"WR","depth":0}
   ```
   ```
   Sent to nfl_depth_chart_queue: {"type":"add","playerId":1,"name":"Bob","position":"WR","depth":0}
   > Added Player Bob with position 'WR' to depth: 0
   ```
   ```json
-  {"type":"add","playerId":2,"name":"Charlie","position":"WR","depth":2}
+  {"type":"add","name":"Charlie","position":"WR","depth":2}
   ```
   ```
   Sent to nfl_depth_chart_queue: {"type":"add","playerId":2,"name":"Charlie","position":"WR","depth":2}
   > Added Player Charlie with position 'WR' to depth: 2
   ```
   ```json
-  {"type":"add","playerId":3,"name":"Alice","position":"WR","depth":0}
+  {"type":"add","name":"Alice","position":"WR","depth":0}
   ```
   ```
   Sent to nfl_depth_chart_queue: {"type":"add","playerId":3,"name":"Alice","position":"WR","depth":0}
   > Added Player Alice with position 'WR' to depth: 0
   ```
   ```json
-  {"type":"add","playerId":1,"name":"Bob","position":"KR"}
+  {"type":"add","name":"Bob","position":"KR"}
   ```
   ```
   Sent to nfl_depth_chart_queue: {"type":"add","playerId":1,"name":"Bob","position":"KR"}
